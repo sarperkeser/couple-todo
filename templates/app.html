@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our To-Do List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #fce4ec 0%, #e1bee7 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .app-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .app-header {
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .app-header p {
+            color: #e1bee7;
+            font-size: 14px;
+        }
+        
+        .logout-btn {
+            background: #7b1fa2;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .logout-btn:hover {
+            background: #6a1b9a;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            background: #f5f5f5;
+        }
+        
+        .tab.active {
+            background: #f3e5f5;
+            color: #9c27b0;
+            border-bottom-color: #9c27b0;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .add-task {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .add-task input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .add-task input:focus {
+            outline: none;
+            border-color: #9c27b0;
+        }
+        
+        .add-task button {
+            background: #9c27b0;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .add-task button:hover {
+            background: #7b1fa2;
+        }
+        
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        
+        .task-item:hover {
+            background: #eeeeee;
+        }
+        
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #bdbdbd;
+            border-radius: 50%;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .checkbox.checked {
+            background: #9c27b0;
+            border-color: #9c27b0;
+        }
+        
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 16px;
+        }
+        
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .task-text.completed {
+            text-decoration: line-through;
+            color: #999;
+        }
+        
+        .task-author {
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+        }
+        
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: #ef5350;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+        }
+        
+        .delete-btn:hover {
+            color: #c62828;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #bdbdbd;
+        }
+        
+        .empty-state p:first-child {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 640px) {
+            .app-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .add-task {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="app-card">
+            <div class="app-header">
+                <div>
+                    <h1>💕 Our To-Do List</h1>
+                    <p>Welcome, {{ username }}!</p>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab active" data-tab="personal">📝 My List</button>
+                <button class="tab" data-tab="shared">👥 Our List</button>
+            </div>
+            
+            <div class="content">
+                <div class="add-task">
+                    <input type="text" id="newTask" placeholder="Add a new task...">
+                    <button id="addBtn">Add</button>
+                </div>
+                
+                <div class="task-list" id="taskList">
+                    <div class="empty-state">
+                        <p>No tasks yet</p>
+                        <p>Add your first task above!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentTab = 'personal';
+        let tasks = { personal: [], shared: [] };
+        
+        // Load tasks on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+            
+            // Tab switching
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentTab = tab.dataset.tab;
+                    renderTasks();
+                });
+            });
+            
+            // Add task
+            document.getElementById('addBtn').addEventListener('click', addTask);
+            document.getElementById('newTask').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTask();
+            });
+        });
+        
+        async function loadTasks() {
+            try {
+                const [personalRes, sharedRes] = await Promise.all([
+                    fetch('/api/tasks/personal'),
+                    fetch('/api/tasks/shared')
+                ]);
+                
+                tasks.personal = await personalRes.json();
+                tasks.shared = await sharedRes.json();
+                renderTasks();
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        }
+        
+        async function addTask() {
+            const input = document.getElementById('newTask');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        is_shared: currentTab === 'shared'
+                    })
+                });
+                
+                const newTask = await response.json();
+                tasks[currentTab].push(newTask);
+                input.value = '';
+                renderTasks();
+            } catch (error) {
+                console.error('Error adding task:', error);
+            }
+        }
+        
+        async function toggleTask(taskId) {
+            const task = tasks[currentTab].find(t => t.id === taskId);
+            
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ completed: !task.completed })
+                });
+                
+                const updatedTask = await response.json();
+                task.completed = updatedTask.completed;
+                renderTasks();
+            } catch (error) {
+                console.error('Error updating task:', error);
+            }
+        }
+        
+        async function deleteTask(taskId) {
+            try {
+                await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+                tasks[currentTab] = tasks[currentTab].filter(t => t.id !== taskId);
+                renderTasks();
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
+        }
+        
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            const currentTasks = tasks[currentTab];
+            
+            if (currentTasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="empty-state">
+                        <p>No tasks yet</p>
+                        <p>Add your first task above!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            taskList.innerHTML = currentTasks.map(task => `
+                <div class="task-item">
+                    <div class="checkbox ${task.completed ? 'checked' : ''}" 
+                         onclick="toggleTask(${task.id})"></div>
+                    <span class="task-text ${task.completed ? 'completed' : ''}">
+                        ${task.text}
+                    </span>
+                    ${currentTab === 'shared' ? `<span class="task-author">by ${task.created_by}</span>` : ''}
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">×</button>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
