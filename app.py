@@ -7,10 +7,20 @@ import os
 app = Flask(__name__)
 
 # Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'gizli-anahtarim-burada')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
 
+# Database configuration - use PostgreSQL on Render, SQLite locally
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith('postgres://'):
+    # Render uses postgres:// but SQLAlchemy needs postgresql://
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Use SQLite for local development
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize extensions
 db.init_app(app)
 bcrypt = Bcrypt(app)
@@ -29,21 +39,23 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-def init_database():
-    """Initialize database with hardcoded users"""
-    with app.app_context():
-        db.create_all()
-        
-        # Create users if they don't exist
-        for username, password in AUTHORIZED_USERS.items():
-            existing_user = User.query.filter_by(username=username).first()
-            if not existing_user:
-                hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-                new_user = User(username=username, password_hash=hashed_password)
-                db.session.add(new_user)
-        
+# Initialize database before first request
+with app.app_context():
+    db.create_all()
+    
+    # Create users if they don't exist
+    for username, password in AUTHORIZED_USERS.items():
+        existing_user = User.query.filter_by(username=username).first()
+        if not existing_user:
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            new_user = User(username=username, password_hash=hashed_password)
+            db.session.add(new_user)
+    
+    try:
         db.session.commit()
-        print("✅ Database initialized with users!")
+        print("✅ Database initialized!")
+    except:
+        db.session.rollback()
 
 
 # Routes
@@ -163,5 +175,4 @@ def delete_task(task_id):
 
 
 if __name__ == '__main__':
-    init_database()
     app.run(debug=True, host='0.0.0.0', port=5000)
